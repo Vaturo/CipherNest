@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CipherNest - Advanced Password Generator</title>
+<style>
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #080b11;
+    background-image:
+      radial-gradient(900px 520px at 10% -12%, rgba(53, 214, 164, 0.14), transparent 62%),
+      radial-gradient(820px 520px at 94% -4%, rgba(91, 140, 255, 0.16), transparent 58%);
+    background-attachment: fixed;
+    color: #e6ecf7;
+    min-height: 100vh;
+    padding: 30px 16px 56px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1020px; margin: 0 auto; }
+
+  header.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .mark {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    color: #05130e;
+    background: linear-gradient(135deg, #35d6a4, #5b8cff);
+    box-shadow: 0 12px 26px rgba(53, 214, 164, 0.26);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 25px;
+    letter-spacing: -0.5px;
+  }
+
+  .tagline {
+    margin: 3px 0 0;
+    color: #8d9bb5;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .card {
+    background: linear-gradient(180deg, rgba(23, 31, 48, 0.92), rgba(15, 20, 32, 0.92));
+    border: 1px solid #212b3f;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+  }
+
+  .card + .card, .card + .layout, .layout + .card { margin-top: 16px; }
+
+  .layout {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: start;
+  }
+
+  @media (max-width: 880px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a9b6cf;
+    letter-spacing: 0.2px;
+  }
+
+  .cardTitle {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #cbd6ea;
+    letter-spacing: 0.2px;
+  }
+
+  .fieldHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .pill {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: #182034;
+    border: 1px solid #26314a;
+    padding: 3px 10px;
+    border-radius: 99px;
+    color: #35d6a4;
+    white-space: nowrap;
+  }
+
+  .outputRow {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .pw {
+    flex: 1 1 auto;
+    display: block;
+    min-width: 0;
+    min-height: 74px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(15px, 2.3vw, 21px);
+    line-height: 1.5;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    user-select: all;
+    background: #0b0f19;
+    border: 1px solid #212b3f;
+    border-radius: 14px;
+    padding: 16px;
+    color: #d9f7ec;
+  }
+
+  .meter {
+    height: 8px;
+    border-radius: 99px;
+    background: #1a2336;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+
+  .meterFill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: #ff6b6b;
+    transition: width 0.25s ease, background 0.25s ease;
+  }
+
+  .meterMeta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12.5px;
+    color: #8d9bb5;
+    margin-top: 8px;
+  }
+
+  .btn {
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 12px;
+    border: 1px solid #26314a;
+    background: #182034;
+    color: #dbe4f5;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+  }
+
+  .btn:hover { background: #1e2840; border-color: #33415f; }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 2px solid rgba(53, 214, 164, 0.65); outline-offset: 2px; }
+
+  .btn.accent {
+    background: linear-gradient(135deg, #35d6a4, #3fb3d8);
+    color: #04140f;
+    border-color: transparent;
+    box-shadow: 0 12px 26px rgba(53, 214, 164, 0.22);
+  }
+
+  .btn.accent:hover { filter: brightness(1.07); background: linear-gradient(135deg, #35d6a4, #3fb3d8); }
+
+  .btn.wide { width: 100%; margin-top: 16px; padding: 13px 16px; font-size: 15px; }
+
+  .btn.tiny { padding: 6px 11px; font-size: 12px; border-radius: 9px; }
+
+  .btn.ok {
+    background: #35d6a4;
+    border-color: transparent;
+    color: #04140f;
+  }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 26px;
+    background: transparent;
+    cursor: pointer;
+    display: block;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 99px;
+    background: #1a2336;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #35d6a4, #5b8cff);
+    border: 2px solid #0b0f19;
+    box-shadow: 0 4px 14px rgba(53, 214, 164, 0.35);
+  }
+
+  input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 99px;
+    background: #1a2336;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #35d6a4;
+    border: 2px solid #0b0f19;
+  }
+
+  input[type="range"]:focus-visible {
+    outline: 2px solid rgba(53, 214, 164, 0.6);
+    outline-offset: 4px;
+    border-radius: 99px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid #26314a;
+    background: #0b0f19;
+    color: #e6ecf7;
+  }
+
+  input[type="text"]::placeholder { color: #5d6b85; }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #35d6a4;
+    box-shadow: 0 0 0 3px rgba(53, 214, 164, 0.18);
+  }
+
+  .switchGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 9px;
+  }
+
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    border: 1px solid #212b3f;
+    border-radius: 13px;
+    background: #0e1420;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .switch:hover { border-color: #33415f; background: #121a29; }
+
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .track {
+    position: relative;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 24px;
+    border-radius: 99px;
+    background: #2a3448;
+    transition: background 0.2s ease;
+  }
+
+  .thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #8d9bb5;
+    transition: left 0.2s ease, background 0.2s ease;
+  }
+
+  .switch input:checked + .track { background: rgba(53, 214, 164, 0.9); }
+  .switch input:checked + .track .thumb { left: 21px; background: #04140f; }
+
+  .switch input:focus-visible + .track {
+    outline: 2px solid rgba(53, 214, 164, 0.65);
+    outline-offset: 2px;
+  }
+
+  .switchText {
+    font-size: 13.5px;
+    color: #c4d0e6;
+    line-height: 1.35;
+  }
+
+  .historyList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .historyRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0b0f19;
+    border: 1px solid #1c2537;
+    border-radius: 12px;
+    padding: 9px 10px;
+  }
+
+  .historyRow code {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    color: #b9c6dd;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+
+  .empty {
+    color: #6f7d97;
+    font-size: 13px;
+    margin: 12px 0 0;
+  }
+
+  footer {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .credit {
+    margin: 0;
+    color: #8d9bb5;
+    font-size: 13.5px;
+  }
+
+  .credit strong { color: #e6ecf7; }
+
+  .btn.donate {
+    background: linear-gradient(135deg, #ff7a9c, #ffb457);
+    color: #2a0d16;
+    border-color: transparent;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 12px 26px rgba(255, 122, 156, 0.2);
+  }
+
+  .btn.donate:hover { filter: brightness(1.06); background: linear-gradient(135deg, #ff7a9c, #ffb457); }
+
+  .note {
+    margin: 16px 0 0;
+    color: #66738c;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brand">
+    <div class="mark">CN</div>
+    <div>
+      <h1>CipherNest</h1>
+      <p class="tagline">Advanced password generator that runs fully offline in your browser</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="fieldHead">
+      <span class="label">Generated password</span>
+      <span class="pill" id="lengthPill">20 characters</span>
+    </div>
+    <div class="outputRow">
+      <output id="pwOut" class="pw">Press generate to begin</output>
+      <button id="copyBtn" class="btn" type="button">Copy</button>
+    </div>
+    <div class="meter"><div id="meterFill" class="meterFill"></div></div>
+    <div class="meterMeta">
+      <span id="strengthLabel">Waiting</span>
+      <span id="entropyLabel">0 bits of entropy</span>
+    </div>
+    <button id="genBtn" class="btn accent wide" type="button">Generate password</button>
+  </section>
+
+  <div class="layout">
+
+    <section class="card">
+      <div class="fieldHead">
+        <h2 class="cardTitle">Settings</h2>
+      </div>
+
+      <div class="field">
+        <div class="fieldHead">
+          <label class="label" for="lenRange">Password length</label>
+          <span class="pill" id="lenValue">20</span>
+        </div>
+        <input type="range" id="lenRange" min="4" max="128" step="1" value="20">
+      </div>
+
+      <div class="field">
+        <div class="fieldHead">
+          <span class="label">Character types</span>
+        </div>
+        <div class="switchGrid">
+          <label class="switch">
+            <input type="checkbox" id="optLower" checked>
+            <span class="track"><span class="thumb"></span></span>
+            <span class="switchText">Lowercase letters</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="optUpper" checked>
+            <span class="track"><span class="thumb"></span></span>
+            <span class="switchText">Uppercase letters</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="optDigits" checked>
+            <span class="track"><span class="thumb"></span></span>
+            <span class="switchText">Numbers</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="optSymbols" checked>
+            <span class="track"><span class="thumb"></span></span>
+            <span class="switchText">Symbols</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="switch">
+          <input type="checkbox" id="optSimilar">
+          <span class="track"><span class="thumb"></span></span>
+          <span class="switchText">Exclude similar looking characters such as i, l, 1, O and 0</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <div class="fieldHead">
+          <label class="label" for="excludeInput">Characters to exclude</label>
+        </div>
+        <input type="text" id="excludeInput" placeholder="Type characters you never want to see" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="fieldHead">
+        <h2 class="cardTitle">Recent passwords</h2>
+        <button id="clearHist" class="btn tiny" type="button">Clear</button>
+      </div>
+      <div id="historyList" class="historyList"></div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p class="credit">Created by <strong>Vaturo</strong></p>
+    <a class="btn donate" href="https://buy.stripe.com/9B628re9hbdk0450oc5gc00" target="_blank" rel="noopener noreferrer">Donate to Vaturo</a>
+  </footer>
+
+  <p class="note">CipherNest uses the cryptographic random generator built into your browser. Every password is created on this device. Nothing leaves your machine and nothing is saved after you close this tab.</p>
+
+</div>
+
+<script>
+(function () {
+  "use strict"
+
+  const SETS = {
+    lower: "abcdefghijklmnopqrstuvwxyz",
+    upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    digits: "0123456789",
+    symbols: "@#$%^&*()_+-=[]{}|~?.,<>"
+  }
+
+  const SIMILAR = "il1LI0Oo"
+  const HISTORY_LIMIT = 6
+
+  const $ = function (id) { return document.getElementById(id) }
+
+  const ui = {
+    out: $("pwOut"),
+    copy: $("copyBtn"),
+    gen: $("genBtn"),
+    len: $("lenRange"),
+    lenValue: $("lenValue"),
+    lengthPill: $("lengthPill"),
+    lower: $("optLower"),
+    upper: $("optUpper"),
+    digits: $("optDigits"),
+    symbols: $("optSymbols"),
+    similar: $("optSimilar"),
+    exclude: $("excludeInput"),
+    meterFill: $("meterFill"),
+    strength: $("strengthLabel"),
+    entropy: $("entropyLabel"),
+    history: $("historyList"),
+    clearHist: $("clearHist")
+  }
+
+  let history = []
+  let current = ""
+
+  function randInt(max) {
+    if (max <= 1) return 0
+    const buf = new Uint32Array(1)
+    const limit = Math.floor(4294967296 / max) * max
+    let value = 0
+    do {
+      crypto.getRandomValues(buf)
+      value = buf[0]
+    } while (value >= limit)
+    return value % max
+  }
+
+  function bannedSet() {
+    const banned = new Set()
+    if (ui.similar.checked) {
+      for (const ch of SIMILAR) banned.add(ch)
+    }
+    for (const ch of ui.exclude.value) banned.add(ch)
+    return banned
+  }
+
+  function characterGroups() {
+    const banned = bannedSet()
+    const chosen = []
+    if (ui.lower.checked) chosen.push(SETS.lower)
+    if (ui.upper.checked) chosen.push(SETS.upper)
+    if (ui.digits.checked) chosen.push(SETS.digits)
+    if (ui.symbols.checked) chosen.push(SETS.symbols)
+
+    const groups = []
+    for (const raw of chosen) {
+      const chars = []
+      for (const ch of raw) {
+        if (banned.has(ch)) continue
+        if (chars.indexOf(ch) !== -1) continue
+        chars.push(ch)
+      }
+      if (chars.length) groups.push(chars)
+    }
+    return groups
+  }
+
+  function poolFrom(groups) {
+    const all = []
+    for (const group of groups) {
+      for (const ch of group) {
+        if (all.indexOf(ch) === -1) all.push(ch)
+      }
+    }
+    return all
+  }
+
+  function makePassword(length, groups, pool) {
+    const chars = []
+
+    for (const group of groups) {
+      if (chars.length >= length) break
+      chars.push(group[randInt(group.length)])
+    }
+
+    while (chars.length < length) {
+      chars.push(pool[randInt(pool.length)])
+    }
+
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = randInt(i + 1)
+      const tmp = chars[i]
+      chars[i] = chars[j]
+      chars[j] = tmp
+    }
+
+    return chars.join("")
+  }
+
+  function rateEntropy(bits) {
+    if (bits < 40) return { label: "Weak", color: "#ff6b6b", width: 18 }
+    if (bits < 60) return { label: "Fair", color: "#ffb457", width: 38 }
+    if (bits < 80) return { label: "Good", color: "#5b8cff", width: 60 }
+    if (bits < 100) return { label: "Strong", color: "#35d6a4", width: 80 }
+    return { label: "Very strong", color: "#35d6a4", width: 100 }
+  }
+
+  function renderHistory() {
+    ui.history.innerHTML = ""
+
+    if (!history.length) {
+      const empty = document.createElement("p")
+      empty.className = "empty"
+      empty.textContent = "Nothing generated yet"
+      ui.history.appendChild(empty)
+      return
+    }
+
+    history.forEach(function (pw) {
+      const row = document.createElement("div")
+      row.className = "historyRow"
+
+      const code = document.createElement("code")
+      code.textContent = pw
+
+      const btn = document.createElement("button")
+      btn.type = "button"
+      btn.className = "btn tiny"
+      btn.textContent = "Copy"
+      btn.addEventListener("click", function () {
+        copyText(pw, btn)
+      })
+
+      row.appendChild(code)
+      row.appendChild(btn)
+      ui.history.appendChild(row)
+    })
+  }
+
+  function fallbackCopy(text, done) {
+    const area = document.createElement("textarea")
+    area.value = text
+    area.setAttribute("readonly", "")
+    area.style.position = "fixed"
+    area.style.top = "-1000px"
+    area.style.opacity = "0"
+    document.body.appendChild(area)
+    area.select()
+    try {
+      document.execCommand("copy")
+    } catch (err) {
+      /* clipboard unavailable, ignore */
+    }
+    document.body.removeChild(area)
+    done()
+  }
+
+  function copyText(text, btn) {
+    const done = function () {
+      if (!btn) return
+      const original = btn.textContent
+      btn.textContent = "Copied"
+      btn.classList.add("ok")
+      window.setTimeout(function () {
+        btn.textContent = original
+        btn.classList.remove("ok")
+      }, 1200)
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        fallbackCopy(text, done)
+      })
+    } else {
+      fallbackCopy(text, done)
+    }
+  }
+
+  function render(addToHistory) {
+    const length = Number(ui.len.value)
+    const groups = characterGroups()
+    const pool = poolFrom(groups)
+
+    ui.lenValue.textContent = String(length)
+    ui.lengthPill.textContent = length + " characters"
+
+    if (!pool.length) {
+      current = ""
+      ui.out.textContent = "Select at least one character type"
+      ui.meterFill.style.width = "0%"
+      ui.meterFill.style.background = "#ff6b6b"
+      ui.strength.textContent = "No character types selected"
+      ui.strength.style.color = "#ff6b6b"
+      ui.entropy.textContent = "0 bits of entropy"
+      return
+    }
+
+    const password = makePassword(length, groups, pool)
+    current = password
+    ui.out.textContent = password
+
+    const bits = length * (Math.log(pool.length) / Math.LN2)
+    const rating = rateEntropy(bits)
+
+    ui.meterFill.style.width = rating.width + "%"
+    ui.meterFill.style.background = rating.color
+    ui.strength.textContent = rating.label
+    ui.strength.style.color = rating.color
+    ui.entropy.textContent = Math.round(bits) + " bits of entropy"
+
+    if (addToHistory) {
+      history.unshift(password)
+      if (history.length > HISTORY_LIMIT) history.length = HISTORY_LIMIT
+      renderHistory()
+    }
+  }
+
+  const softRender = function () { render(false) }
+
+  const toggles = [ui.lower, ui.upper, ui.digits, ui.symbols, ui.similar]
+  toggles.forEach(function (node) {
+    node.addEventListener("change", softRender)
+  })
+
+  ui.exclude.addEventListener("input", softRender)
+
+  ui.len.addEventListener("input", softRender)
+
+  ui.gen.addEventListener("click", function () {
+    render(true)
+  })
+
+  ui.copy.addEventListener("click", function () {
+    if (!current) return
+    copyText(current, ui.copy)
+  })
+
+  ui.clearHist.addEventListener("click", function () {
+    history = []
+    renderHistory()
+  })
+
+  renderHistory()
+  render(true)
+})()
+</script>
+</body>
+</html>
